@@ -1,0 +1,35 @@
+# Core
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy[asyncio]==2.0.29
+asyncpg==0.29.0
+alembic==1.13.1
+
+# pgvector support (ready for later)
+pgvector==0.2.5
+
+# Auth & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+
+# Validation
+pydantic==2.6.4
+pydantic-settings==2.2.1
+email-validator==2.1.1
+
+# HTTP client
+httpx>=0.28.1
+
+# AI – Google Gemini (official SDK)
+google-genai>=1.0.0
+
+# Utilities
+tenacity==8.2.3
+pymupdf==1.24.1
+python-docx==1.1.0
+pandas==2.2.1
+openpyxl==3.1.2
