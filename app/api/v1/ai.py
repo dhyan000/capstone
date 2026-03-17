@@ -17,6 +17,8 @@ from app.services.ai_service import AIService
 router = APIRouter(prefix="/ai", tags=["AI"])
 
 
+from app.api.v1.stats import increment_ai_query
+
 @router.post("/ask", response_model=AskResponse)
 async def ask_question(
     payload:      AskRequest,
@@ -28,4 +30,8 @@ async def ask_question(
     documents the current user has access to.
     """
     service = AIService(db)
+    
+    # Increment global AI query stats
+    increment_ai_query(str(current_user.id))
+    
     return await service.ask(payload.question, current_user)

@@ -3,6 +3,7 @@ main.py – Application entry point for the Role-Based AI Documentation System.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,15 +33,18 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        print("✅  Database tables verified / created.")
+        print("Database tables verified / created.")
     except Exception as e:
-        print(f"⚠️  Could not connect to database at startup: {e}")
+        print(f"Warning: Could not connect to database at startup: {e}")
         print("    The server will start, but DB operations will fail until the connection is fixed.")
-    print(f"🚀  Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    # Ensure temp uploads directory exists
+    Path("temp_uploads").mkdir(exist_ok=True)
+    print("temp_uploads/ directory ready.")
+    print(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     yield
     # Shutdown
     await engine.dispose()
-    print("🛑  Database connections closed.")
+    print("Database connections closed.")
 
 
 # ── App factory ───────────────────────────────────────────────────────────────

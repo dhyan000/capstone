@@ -43,6 +43,7 @@ class DocumentResponse(BaseModel):
     department: Optional[Department]
     role_access: List[str]
     uploaded_by: Optional[uuid.UUID]
+    temp_file_path: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

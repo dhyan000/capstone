@@ -1,0 +1,49 @@
+# CapStone — Workflow
+
+```mermaid
+flowchart LR
+    START([▶ Start])
+
+    subgraph AUTH["  AUTHENTICATION  "]
+        direction LR
+        A[User Login] --> B[Role Validation] --> C{Is Role\nValid?}
+    end
+
+    subgraph QP["  QUERY PROCESSING  "]
+        direction LR
+        D[User Submits\nQuery] --> E[Generate Query\nEmbedding]
+    end
+
+    subgraph DB["  DATABASE OPERATIONS  "]
+        direction LR
+        F[Perform\nSimilarity Search] --> G[Apply Role\nBased Filtering]
+    end
+
+    subgraph AI["  AI PROCESSING  "]
+        direction LR
+        H[Query Router] --> I[Apply Domain\nSpecific Prompting] --> J[Generate AI\nResponse]
+    end
+
+    DENY([Access Denied]) --> DENYEND([Access Denied\nEnd])
+    END([✔ End])
+
+    START --> AUTH
+    C -- No  --> DENY
+    C -- Yes --> QP
+    QP --> DB
+    DB --> AI
+    AI --> K[Display Answer\nwith Sources] --> END
+
+    %% Colours
+    style AUTH fill:#dbeafe,stroke:#93c5fd
+    style QP   fill:#f3e8ff,stroke:#c084fc
+    style DB   fill:#dcfce7,stroke:#86efac
+    style AI   fill:#fef9c3,stroke:#fde047
+
+    style START   fill:#6ee7b7,stroke:#059669,color:#000
+    style END     fill:#6ee7b7,stroke:#059669,color:#000
+    style DENY    fill:#fca5a5,stroke:#ef4444,color:#000
+    style DENYEND fill:#fca5a5,stroke:#ef4444,color:#000
+    style C       fill:#fdba74,stroke:#f97316,color:#000
+    style K       fill:#a5b4fc,stroke:#6366f1,color:#000
+```

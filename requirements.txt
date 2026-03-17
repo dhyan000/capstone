@@ -8,6 +8,9 @@ sqlalchemy[asyncio]==2.0.29
 asyncpg==0.29.0
 alembic==1.13.1
 
+# Supabase (Storage)
+supabase>=2.4.0
+
 # pgvector support (ready for later)
 pgvector==0.2.5
 

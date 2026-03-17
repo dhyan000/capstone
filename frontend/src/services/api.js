@@ -36,16 +36,32 @@ export const getMe = () => api.get('/auth/me');
 
 // ── Documents ─────────────────────────────────────────────────────────
 export const getDocuments = (params) => api.get('/documents/', { params });
-export const getDocument = (id) => api.get(`/documents/${id}`);
+export const getDocumentById = (id) => api.get(`/documents/${id}`);
 export const createDocument = (data) => {
-    // If it's FormData, let Axios set the correct boundary header
     const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
     return api.post('/documents/', data, { headers });
 };
 export const updateDocument = (id, data) => api.patch(`/documents/${id}`, data);
 export const deleteDocument = (id) => api.delete(`/documents/${id}`);
 
+// Fetch the raw file blob for in-browser viewing
+export const getDocumentFile = (id) =>
+    api.get(`/documents/${id}/file`, {
+        responseType: 'blob',
+        validateStatus: () => true,
+    });
+
+// Ask a question about one specific document
+export const askDocumentAI = (id, question) =>
+    api.post(`/documents/${id}/ask`, { question });
+
+// Knowledge graph data
+export const getKnowledgeGraph = () => api.get('/documents/graph');
+
 // ── AI ────────────────────────────────────────────────────────────────
 export const askAI = (question) => api.post('/ai/ask', { question });
+
+// ── Stats ─────────────────────────────────────────────────────────────
+export const getDashboardStats = () => api.get('/stats/dashboard');
 
 export default api;

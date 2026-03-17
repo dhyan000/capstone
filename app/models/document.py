@@ -5,7 +5,7 @@ Prepared for future pgvector embedding storage.
 
 import enum
 
-from sqlalchemy import ARRAY, Enum, ForeignKey, String, Text
+from sqlalchemy import ARRAY, Enum, ForeignKey, String, Text, Column
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,6 +41,9 @@ class Document(UUIDMixin, TimestampMixin, Base):
     role_access: Mapped[list] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
+
+    # Temporary file path (server-local, lost on restart – Feature 1)
+    temp_file_path: Mapped[str] = mapped_column(Text, nullable=True)
 
     # FK to users table (who uploaded)
     uploaded_by: Mapped[UUID] = mapped_column(

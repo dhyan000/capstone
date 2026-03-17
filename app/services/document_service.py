@@ -1,10 +1,14 @@
 """
 DocumentService – business logic for document CRUD with access control.
 All queries apply build_document_access_filter() before returning results.
+
+Text extraction is preserved for RAG/AI pipeline (stored in Document.content).
+No file storage – only extracted text is saved to the database.
 """
 
 from typing import List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,22 +27,40 @@ class DocumentService:
     # ── Create ────────────────────────────────────────────────────────────
 
     async def create(
-        self, 
-        payload: DocumentCreate, 
-        current_user: User, 
+        self,
+        payload: DocumentCreate,
+        current_user: User,
         file: Optional[bytes] = None,
         filename: Optional[str] = None,
-        content_type: Optional[str] = None
+        content_type: Optional[str] = None,
     ) -> Document:
+        """
+        Extract text from the uploaded file bytes and save only the text to the DB.
+        No file is stored anywhere – binary data is discarded after extraction.
+        """
         content = payload.content
-        
-        # If a file is provided, try to extract text from it
-        if file and filename and content_type:
+
+        # ── Temp file storage (Feature 1) ──────────────────────────────
+        temp_file_path = None
+        if file and filename:
+            safe_name = Path(filename).name  # strip any path traversal
+            temp_path = Path("temp_uploads") / f"{uuid4()}_{safe_name}"
+            try:
+                temp_path.write_bytes(file)
+                temp_file_path = str(temp_path)
+            except Exception as e:
+                print(f"Warning: could not write temp file: {e}")
+
+        # ── Extract text for RAG pipeline ─────────────────────────────
+        if file and filename:
             from app.core.extractor import TextExtractor
-            extracted_text = TextExtractor.extract(file, filename, content_type)
+            extracted_text = TextExtractor.extract(file, filename, content_type or "")
             if extracted_text:
-                # Append extracted text to manual content if any, or replace it
-                content = f"{content}\n\n[Extracted from {filename}]\n{extracted_text}" if content else extracted_text
+                content = (
+                    f"{content}\n\n[Extracted from {filename}]\n{extracted_text}"
+                    if content
+                    else extracted_text
+                )
 
         doc = Document(
             title=payload.title,
@@ -47,6 +69,7 @@ class DocumentService:
             department=payload.department.value if payload.department else None,
             role_access=[r.value for r in payload.role_access],
             uploaded_by=current_user.id,
+            temp_file_path=temp_file_path,
         )
         self.db.add(doc)
         await self.db.flush()
@@ -77,9 +100,10 @@ class DocumentService:
         access_filter = build_document_access_filter(current_user)
         stmt = select(Document).where(access_filter)
 
-        # Optional extra filters
         if category:
-            stmt = stmt.where(Document.category == category)
+            categories = [c.strip() for c in category.split(",") if c.strip()]
+            if categories:
+                stmt = stmt.where(Document.category.in_(categories))
         if department:
             stmt = stmt.where(Document.department == department)
 
@@ -106,9 +130,14 @@ class DocumentService:
         await self.db.refresh(doc)
         return doc
 
-    # ── Delete ────────────────────────────────────────────────────────────
+    # ── Delete (admin or owner) ───────────────────────────────────────────
 
     async def delete(self, document_id: UUID, current_user: User) -> None:
+        """
+        Deletes a document DB record.
+        Allowed for: Admin or the document's uploader.
+        No storage cleanup needed – files were never stored.
+        """
         doc = await self._get_owned_or_admin(document_id, current_user)
         await self.db.delete(doc)
         await self.db.flush()

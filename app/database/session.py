@@ -61,3 +61,4 @@ async def db_context() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+print("ENGINE USING:", settings.DATABASE_URL)
