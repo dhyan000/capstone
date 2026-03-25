@@ -9,6 +9,7 @@ const ROLES = [
     { value: 'student', label: 'Student' },
     { value: 'staff', label: 'Staff' },
     { value: 'hod', label: 'Head of Department' },
+    { value: 'admin', label: 'Admin' },
     { value: 'guest', label: 'Guest' },
 ];
 
